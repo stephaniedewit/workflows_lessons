@@ -1,0 +1,45 @@
+---
+title: "workflows_les_3"
+author: "Stephanie de Wit"
+date: '2022-04-22'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+```
+
+Git is version control software __for text files__ (scripts, RMarkdowns): software that keeps track of file changes and allows you to inspect the changes and to go back to previous versions of the files. GitHub is based on the Git software. It allows you to create an online copy of your files and the Git version history. This copy can then be shared with others, who can then also contribute to the code themselves.
+
+__The Git workflow__
+
+A __Git repository__ is a folder in which the version control takes place: all the changes of files that are located in that folder (and its subfolders) are tracked. Create a separate repository for each project. Initiate the repository on GitHub and download it to your computer. This results in a folder on your computer, all files that are placed here will be under version control by Git.
+
+Git does not automatically track the file changes, you need to tell it to do so. The action of saving a new version of your files in the Git repository’s file history is called a __commit__.
+
+When you commit changes, the repository on __your computer__ will be updated but not the repository on GitHub. The process of updating your Git repository on GitHub based on local changes (new versions on your computer) is called __pushing__ (you ‘push’ the changes from your computer to GitHub).
+
+When colleagues change the repository on GitHub, the commits are not automatically present in the Git repository on your computer. You want to update your local repository based on the changes on GitHub: __pulling__  (you ‘pull’ the changes from GitHub to your computer, the opposite of pushing).
+
+__Protocol for working with Git using RStudio, assuming that you are the only person contributing to the repository__
+
+Token: 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
+
+Some file changes do not have to be tracked by Git. These include file changes to files that are generated automatically by R (such as .RData and .Rhistory files). The names of these files can (automatically when creating a R gitignore file) be added to this gitignore text file.
+
+git clone https://github.com/stephaniedewit/repository_naam ergens in een folder na rechtermuis klik en keuze Git Bash Here. In this folder, the files of your Git repository are located. Now you can go to this folder and add/change files. With the following command you can see which files have been changed:
+
+git status
+
+Commit the file changes with:
+
+git add --all; git commit -m 'your-message'
+
+Pushing and pulling changes:
+
+git push origin main
+
+git pull origin main
+
+
+

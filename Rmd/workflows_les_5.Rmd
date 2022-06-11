@@ -1,0 +1,408 @@
+---
+title: "workflows_les_5"
+author: "Stephanie de Wit"
+date: '2022-04-28'
+output:
+  html_document:
+    css: "style.css"
+#bibliography: "'r rbbt::bbt_write_bib(”bibliography.json”, overwrite = TRUE)`"
+---
+
+__Krijg het linken met Zotero niet voorelkaar!__
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(warning=FALSE,message=FALSE)
+```
+
+
+"knitr::purl("name_of_your_file.Rmd", documentation = 2) to turn your .Rmd into a script."
+
+"knitr::spin("name_of_your_file.R", knit = FALSE, format = "Rmd") to turn a script into an .Rmd."
+
+<h1>
+## Including images
+</h1>
+
+__1. In an R-chunk call__
+
+```{r examplefig, out.width = "300px", fig.cap = "blablabla", eval=FALSE}
+knitr::include_graphics(
+  here::here( #Dit stelt de workingdirectory in op de folder waarin dit RMarkdown bestand staat, ./DSFB2/workflows_lessen
+    "images",
+    "afbeelding_naam.png"
+  )
+)
+#"Setting the dpi option in the code chunk controls the size of the image displayed in the rendered output"
+```
+
+"A good workflow would be to write all captions in a separate text file and add them to your RMarkdown document using the {captioner} package."
+
+__2. Markdown syntax__
+
+Volgens:
+
+![My personal favorite; 'Soundwave'](https://static.wikia.nocookie.net/transformers/images/8/89/Transformers_G1_Soundwave.jpg){width=20%}
+
+Dit is "Markdown taal", dus niet opgeven in een R chunk!
+
+Tussen de ()-haakjes kan ook een pad, NIET tussen " ", opgegeven worden naar de afbeelding in je images folder.
+
+__3. HTML__
+
+Volgens:
+
+<div style="display: table;">
+  <span>
+  <img src="https://static.wikia.nocookie.net/transformers/images/b/bf/Perceptorg1.jpg" 
+    style="   vertical-align: middle; 
+              display: table-cell;" />
+  </span>
+  <span style=" vertical-align: middle; 
+                display: table-cell; 
+                padding: 20px;">
+  The advantage of this latter option is obviously that you can tweak the appearance and the behavior of your image far better using embedded html. The disadvantage might be that you would have to learn html. This however is a very good idea if you intend to become a Data Scientist/Bioinformatician.
+  </span>
+</div>
+
+Dit is HTML en wordt door R herkend, zonder chunk, indien je knit naar een html_document.
+
+<h1>
+## Graphs
+</h1>
+
+Chunk opties volgens:
+
+"```{r figdiam, echo=FALSE, fig.height = 5, fig.width = 5, fig.align = "center", fig.cap = "Cut and price of diamonds}"
+
+```{r figdiam, echo=FALSE, fig.height = 5, fig.width = 5, fig.align = "center", fig.cap = "Cut and price of diamonds", eval=FALSE}
+#install.packages("ggridges")
+#install.packages("viridis")
+#install.packages("ggthemes")
+library(viridis)
+library(ggplot2)
+library(ggridges)
+library(ggthemes)
+
+ggplot(data = diamonds, 
+       aes(x = price, y = cut, color = cut, fill = cut)) +
+  geom_density_ridges(alpha = 0.8, scale = 5) +
+  scale_fill_viridis(option = "A", discrete = TRUE) +
+  scale_color_viridis(option = "A", discrete = TRUE) + 
+  theme_few()
+```
+
+Kleurenschema's gebruiken voor kleurenblindheid:
+
+A. Handmatig
+
+```{r kleuren instellen}
+cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+library(palmerpenguins)
+
+mass_hist <- ggplot(data = penguins, aes(x = body_mass_g)) +
+  geom_histogram(aes(fill = species),
+                 alpha = 0.8,
+                 position = "identity") +
+  scale_fill_manual(values = c("darkorange","purple","cyan4")) +
+  theme_minimal() +
+  labs(x = "Body mass (g)",
+       y = "Frequency",
+       title = "Penguin body mass")
+
+mass_hist + scale_fill_manual(values = cbp1)
+```
+
+B. Met het RcolorBrewer package
+
+```{r RColorBrewer}
+library(RColorBrewer)
+
+plot <- ggplot(iris, aes(Species, Sepal.Length)) + 
+  geom_boxplot(aes(fill = Species)) +
+  theme_minimal() +
+  theme(legend.position = "top")
+
+#Voor een boxplot (fill):
+plot + scale_fill_brewer(palette = "Dark2")
+
+#Voor een scatterplot (colour):
+#plot + scale_colour_brewer(palette = "Paired")
+```
+
+__Exercise 5.1__
+
+```{r boxplot aanpassen voor kleurenblindheid setup, eval=FALSE}
+#New packages
+install.packages("hrbrthemes")
+```
+
+```{r boxplot aanpassen voor kleurenblindheid}
+# Libraries
+library(tidyverse)
+library(hrbrthemes)
+library(viridis)
+
+# create a dataset
+data <- data.frame(
+  name=c( rep("A",500), rep("B",500), rep("B",500), rep("C",20), rep('D', 100)  ),
+  value=c( rnorm(500, 10, 5), rnorm(500, 13, 1), rnorm(500, 18, 1), rnorm(20, 25, 4), rnorm(100, 12, 1) )
+)
+
+# Plot
+bp <- data %>%
+  ggplot( aes(x=name, y=value, fill=name)) +
+    geom_boxplot() +
+    scale_fill_viridis(discrete = TRUE, alpha=0.6) +
+    geom_jitter(color="black", size=0.4, alpha=0.9) +
+    theme_ipsum() +
+    theme(
+      legend.position="none",
+      plot.title = element_text(size=11)
+    ) +
+    ggtitle("A boxplot with jitter") +
+    xlab("")
+
+# Zelf toegevoegd:
+bp + scale_fill_brewer(palette = "Dark2")
+```
+
+<h1>
+## Tabels
+</h1>
+
+Tibbles knitten tot tabellen met knitr::kable()...
+
+__Interactief maken:__
+
+```{r packages voor tabellen, eval=FALSE}
+install.packages("DT")
+install.packages("kableExtra")
+```
+
+```{r interactieve tabel}
+library(DT)
+DT::datatable(mpg)
+```
+
+__Complexere tabellen maken met de kableExtra package:__
+
+```{r positie}
+library(kableExtra)
+
+# take just a few columns and rows for demonstration purposes
+data_for_table <- mtcars[1:5, 1:6]
+
+kbl(data_for_table) %>% kable_styling(bootstrap_options = "striped", full_width = F, position = "left") #Geen volledige grote en centreer naar links
+```
+
+```{r kleuren}
+data_for_table %>%
+  kbl() %>%
+  kable_classic_2(full_width = F) %>%
+  row_spec(0, angle = -45) %>%
+  column_spec(2, color = spec_color(mtcars$mpg[1:5]),
+              link = "https://www.wikipedia.com") %>%
+  column_spec(5, color = "white",
+              background = spec_color(mtcars$hp[1:5], end = 0.7),
+              popover = paste("am:", mtcars$am[1:5]))
+```
+
+```{r header en voetnoten}
+kbl(data_for_table) %>%
+  kable_classic() %>%
+  add_header_above(c(" " = 1, "Group 1" = 2, "Group 2" = 2, "Group 3" = 2))%>%
+  footnote(general = "Here is a general footnote for the table.")
+```
+
+"Markdown taal" tabellen:
+
+| Syntax      | Description |
+| ----------- | ----------- |
+| Header      | Title       |
+| Paragraph   | Text        |
+
+__Exercise 5.2 & 5.3__
+
+Mijn vijf favoriete Pokémon karakters:
+
+![Mewtwo](https://assets.pokemon.com/assets/cms2/img/pokedex/full/150.png){width=20%} ![Ponyta](https://assets.pokemon.com/assets/cms2/img/pokedex/full/077.png){width=20%} ![Eevee](https://assets.pokemon.com/assets/cms2/img/pokedex/full/133.png){width=20%} 
+
+![Ditto](https://assets.pokemon.com/assets/cms2/img/pokedex/full/132.png){width=20%} ![Snorlax](https://assets.pokemon.com/assets/cms2/img/pokedex/full/143.png){width=20%}
+
+```{r Pokémon tabel, echo=FALSE}
+#Characteristics tabel:
+pokemon <- tibble(Pokémon=c("__Mewtwo__","__Ponyta__","__Eevee__","__Ditto__","__Snorlax__"),Characteristics=c("Mewtwo is a Psychic-type legendary Pokémon introduced in Generation I. It displays telekinesis to fly and block special abilities and utilizes telepathy to communicate with humans.","Ponyta is a Fire-type Pokémon introduced in Generation I. It hooves are harder than diamond and it can heal wounded or poisoned allies.","Eevee is a Normal-type Pokémon introduced in Generation I. It's the Pokémon with the highes number of evolution possibilities. The Z-move Extreme Evoboost is Eevee's signature move.","Ditto is a Normal-type Pokémon introduced in Generation I. It's capable of transforming into anything and has the unique ability to breed with any other Pokémon.","Snorlax is a Normal-type Pokémon introduced in Generation I. It will sleep all day until it's hungry and is believed to release a kind of energy that will help regrow the plants it ate."))
+
+pokemon %>% kbl() %>% column_spec(1,color=c("gray","orange","brown","purple","darkgreen")) %>% kable_classic() %>% footnote(general="Information about characteristics is derived from Pokémon Wiki*.")
+```
+
+Linken optie 1:
+
+[*](https://pokemon.fandom.com/wiki/Pok%C3%A9mon_Wiki)
+
+Linken optie 2:
+
+<html>
+<head>
+<style>
+a {
+  color: blue;
+}
+a:link {
+  text-decoration: none;
+}
+/* mouse over link */
+a:hover {
+  color: lightgreen;
+}
+</style>
+</head>
+<body>
+
+<p><b><a href="https://pokemon.fandom.com/wiki/Pok%C3%A9mon_Wiki" target="_blank">*</a></b></p>
+
+</body>
+</html>
+
+```{r Pokémon plot, fig.cap="__Figuur X: Rating of my favorite Pokémon on a 1-10 scale.__", echo=FALSE}
+#Rating plot:
+pokemon$Pokémon <- factor(pokemon$Pokémon, levels=c("__Mewtwo__","__Ponyta__","__Eevee__","__Ditto__","__Snorlax__"))
+
+pokemon <- pokemon %>% mutate(Rating=c(9,8,8,7,7))
+
+pokemon %>% ggplot(aes(x=Pokémon,y=Rating)) +
+  geom_col(fill=c("gray","orange","brown","purple","darkgreen")) +
+  theme_classic() +
+  ylim(0,10) +
+  labs(title="Pokémon ratings")
+```
+
+<div class="rainbow-box">
+"Charmanders are red, Squirtles are blue. If you were a pokémon. I'd choose you. Your smile is stronger than a hyperbeam. Like Jesse and James we'd make the perfect team. I'll stay by your side like Pikachu to Ash, and I'll love you more than a level 80 Rapidash. You're more legendary than a Zapdos, Entei or Mew. Out all of 450, I'd choose you!" - Unknown
+</div>
+
+## Handige Markdown syntax
+
+Drie white spaces maken met:
+
+"<br>"
+"<br>"
+"<br>"
+
+
+Highlighten met:
+
+"<mark> ... </mark>"
+
+<mark> voorbeeld </mark>
+
+
+Horizontale lijn met:
+
+"---"
+
+---
+
+
+Links invoegen:
+
+"[click here for the link](https://...)"
+
+
+"If you know a chunk will not need to change as other parts of the document are knitted, you can cache a chunk that contains a potentially long-running or slow command: __cache=TRUE__ in chunk header.
+
+## CSS
+
+"CSS is a simple mechanism for adding style to Web documents."
+
+Doorzichtig-rode achtergrond voor code, doorzichtig-gele achtergrond voor output:
+
+```{r class.source="bg-danger", class.output="bg-warning"}
+mtcars[1:5, "mpg"]
+```
+
+Eigen style (watch-out) maken:
+
+```{css, echo=FALSE}
+.watch-out {
+  background-color: lightpink;
+  border: 3px solid red;
+  font-weight: bold;
+}
+```
+
+...en toepassen op een chunk:
+
+```{r class.source="watch-out"}
+mtcars[1:5, "mpg"]
+```
+
+"Defining all your styling stuff within your RMarkdown gets messy, put them in a separate .css file __in the same folder as the .Rmd__. For instance the .css contains:
+
+.bordershere {
+border-style: solid;
+border-width: 5px;
+border-color: purple;
+}
+
+Link the custom style to the .Rmd in the YAML header:
+output:
+  html_document:
+    css: "my-style-sheet.css
+    
+You can also use html <div> tags to apply a css style to part of your .Rmd:
+
+<div class="bordershere">
+text in your .Rmd
+</div"
+
+## 5.6 Cross referencing {#crossreffy}
+
+Referen naar chunks m.b.v. hun naam:
+
+Figuur: \@ref(fig:chunk_naam)
+
+Tabel: \@ref(tab:chunk_naam)
+
+Refereer naar een sectie met een groene 'hier' door de header ervan een label te geven:
+
+[hier](#crossreffy)
+
+Refereer naar een sectie met een groen paragraaf nummer:
+
+Zie paragraaf \@ref(crossreffy) #werkt niet?
+
+## 5.7 Citations
+
+Een footnote van één regel toevoegen met '[^smallnote]' achter je tekst en:
+
+'[^smallnote]: ...'
+
+Een footnote van meerdere regels toevoegen met '[^bignote]' achter je tekst en:
+
+'[^bignote]: ...
+
+...
+
+...
+
+...
+
+...'
+
+## Using Zotero reference manager
+
+```{r, eval=FALSE}
+devtools::install_github("paleolimbot/rbbt")
+```
+
+__Exercise 5.4__
+
+Test citaat 1: @larsenCancerCellsUse2022
+
+Test citaat 2: @ihamaFatalPropellerInjuries2009
+
+???

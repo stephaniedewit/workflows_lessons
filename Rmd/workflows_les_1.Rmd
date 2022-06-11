@@ -1,0 +1,149 @@
+---
+title: "Workflows_les_1"
+author: "Stephanie de Wit"
+date: '2022-04-19'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+```
+
+__Exercise 1.1__
+
+__A)__ https://www.webmd.com/lung/news/20200605/lancet-retracts-hydroxychloroquine-study: "The study was withdrawn because the company that provided data would not provide full access to the information for a third-party peer review, saying to do so would violate client agreements and confidentiality requirements, The Lancet said in a statement."
+
+__B)__ De inhoud van het onderzoek, wat wellicht door peer review werd goedgekeurd, is nu niet meer beschikbaar. Er wordt kennis weggenomen.
+
+__C)__ Nee: ze hebben data dus niet vrijgegeven voor peer review waardoor het hele onderzoek retracted is. Als Lancet aan Reproducible Open Science deed, was er ook geen spraken van "publicatie" of "retractie". Daarnaast zouden dan alle data, gebruikte codes en methodes terug te vinden zijn in de paper.
+
+```{r Exercise 1.2}
+read_excel( path ="http://genesdev.cshlp.org/content/suppl/2009/06/11/gad.1806309.DC1/FancySuppTable2.xls", sheet = 1)
+#Error: `path` does not exist: ‘http://genesdev.cshlp.org/content/suppl/2009/06/11/gad.1806309.DC1/FancySuppTable2.xls’
+library(readxl)
+exc_1.2.4<-read_excel("/Users/steph/OneDrive/Bureaublad/DSFB2/workflows_lessen/FancySuppTable2.xls", sheet = 1)
+```
+
+```{r 1.6.4 An exploratory graph}
+library(nlme)
+library(tidyverse)
+ergoStool %>% as_tibble() #Alle 9 subjects hebben elk van de 4 stoelen 1x gescored.
+
+#1e stap: plot de data. Een scatter plot is een goed begin.
+set.seed(123) #Set the seed of R‘s random number generator, which is useful for creating simulations or random objects that can be reproduced.
+plot_ergo <- ergoStool %>%
+  ggplot(aes(x = reorder(Type, effort), y = effort)) + #Met reorder geef je aan dat je de Efforts van laag naar hoog wilt plotten, dat gaat tenkoste van de Type volgorde.
+  geom_boxplot(colour = "darkgreen", outlier.shape = NA) + 
+  geom_jitter(aes(colour = reorder(Subject, -effort)), 
+              width = 0.2, size = 3) +
+  scale_colour_manual(
+    values = c(
+      "red","blue", 
+      "green", "darkblue", 
+      "darkgreen", "purple", 
+      "grey", "black", "darkgrey")
+    ) +
+  ylab("Effort (Borg scale score)") +
+  xlab("Chair type") + 
+  guides(colour=guide_legend(title="Subject id")) +
+  theme_bw()
+plot_ergo
+```
+
+What model would best capture the variability we see in the data, how would we reflect for example the inter-personal variability we observed in the exercise above, in a model?
+
+```{r 1.6.6 The statistical model}
+ergo_model <- lme(
+  data = ergoStool, #de data die het model moet gebruiken
+  fixed = effort ~ Type, #de afhankelijke en fixed effects variabelen
+  random = ~1 | Subject # random intercepts for Subject variable (?)
+)
+#The fixed and random terms in the model are terms that reflect here the randomization (over persons) and the inter-person variability we observe in the data.
+
+#We choose here to allow each volunteer to have its own curve, that has an intercept with the y axis. For sake of simplicity we assume the curves run parallel, so we assume a fixed slope. In more complicated designs we could also include a random slope, that allows the curves to vary in slope. This can be interpreted as that the effect of Chair type on Effort is not equal for each combination of Chair type and subject. Lets see if the assumption of fixed slope holds:
+plot_ergo_slopes <- ergoStool %>%
+  ggplot(aes(x = reorder(Type, effort), y = effort)) + 
+  geom_jitter(aes(colour = reorder(Subject, -effort)), 
+              width = 0.2, size = 3) +
+  geom_smooth(aes(group = Subject, colour = Subject), method = "lm", se = FALSE) + #Zonder method="lm",se=FALSE geeft lijnen van punt tot punt
+  scale_colour_manual(
+    values = c(
+      "red","blue", 
+      "green", "darkblue", 
+      "darkgreen", "purple", 
+      "grey", "black", "darkgrey")
+    ) + 
+  ylab("Effort (Borg scale score)") +
+  xlab("Chair type") + 
+  guides(colour=guide_legend(title="Subject id")) +
+  theme_bw()
+plot_ergo_slopes
+```
+
+```{r 1.6.7 The statistical results}
+ergo_model #Linear mixed-effects model
+result <- ergo_model %>% summary() #Een samenvatting van het model
+result$tTable %>% as.data.frame() %>% knitr::kable() #Een mooie RMarkdown tabel van de resultaten
+```
+
+Diagnostics of a fitted model is the most important step in a statistical analysis. In most scientific papers these details are lacking.
+
+A residual plot shows the ‘residual’ error (‘unexplained variance’) after fitting the model. Under the Normality assumption standardized residuals should:
+1. Be normally distributed around 0
+2. Display no obvious ‘patters’
+3. Should display overall equal ‘spread’ above and below 0 (‘assumption of equal variance’)
+
+```{r 1.6.9 Residual plot}
+plot(ergo_model) #Type = 'pearson' (standardized residuals)
+#De plot voldoet aan de drie bovenstaande voorwaarden
+```
+
+```{r 1.6.10 The conclusions in a plot}
+library(ggsignif)
+p_values <- result$tTable %>% as.data.frame()
+annotation_df <- data.frame(Type=c("T1", "T2"), 
+                            start=c("T1", "T1"), 
+                            end=c("T2", "T3"),
+                            y=c(16, 14),
+                            label=
+                              paste("p-value:",
+                              c(
+                              formatC(
+                                p_values$`p-value`[2], digits = 3),
+                              formatC(
+                                p_values$`p-value`[3], digits = 3)
+                              )
+                            )
+                          )
+                            
+set.seed(123)
+ergoStool %>%
+  ggplot(aes(x = reorder(Type, effort), 
+             y = effort)) + 
+  geom_boxplot(colour = "darkgreen", 
+               outlier.shape = NA) + 
+  geom_jitter(aes(
+    colour = reorder(Subject, -effort)), 
+    width = 0.2, 
+    size = 3) +
+  scale_colour_manual(
+    values = c(
+      "red", "blue","green", 
+      "darkblue", "darkgreen", 
+      "purple", "grey", "black", 
+      "darkgrey")) +
+  ylab("Effort (Borg scale score)") +
+  xlab("Chair type") + 
+  guides(colour=guide_legend(title="Subject id")) +
+  ylim(c(6,20)) +
+  geom_signif(
+    data=annotation_df,
+    aes(xmin=start, 
+    xmax=end, 
+    annotations=label, 
+    y_position=y),
+    textsize = 5, vjust = -0.2,
+    manual=TRUE) +
+  theme_bw() -> plot_ergo
+plot_ergo
+```

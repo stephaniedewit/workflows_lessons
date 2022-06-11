@@ -1,0 +1,297 @@
+---
+title: "workflows_les_2"
+author: "Stephanie de Wit"
+date: '2022-04-19'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+```
+
+__The Guerilla Principles explained__
+
+data folder met data-log en data_raw subfolders. In data_raw per dataset een sub-folder met metadata in README.txt, supporting, MD5sums en oudere v01 etc. voor oudere versie(s).
+
+__Principle 1: Space is cheap, confusion is expensive.__ #Keep your files, #online cloud.
+
+__Exercise 2.2__
+__1.__ Eventueel een nieuw project aanmaken, de folders aanmaken (volgens Guerilla Principles), een RMarkdown file aanmaken, benodigde packages installeren, geen idee eigenlijk?
+__2.__ Hierboven staat al genoemd dat we All Cycles de sheet met de ruwe data is.
+__3.__ Verwijder rij 12. Verander de kolom namen. Importeer het Excel bestand naar de juiste folder en verander de naam. Laad het in met read_excel("nieuwe_naam",sheet=3,skip=10). Het is niet nodig om aan te geven dat de delimark een komma is.
+__4.__ Zorg er met pivot_longer voor dat de verschillende tijdstippen in één kolom staan en pas de kolom namen aan. Maak van de variabele Tijdstip een factor zodat er grafieken gemaakt kunnen worden. Uhm...
+__5.__ Titel geeft aan: een Salmonella bacterie is gekweekt in lysogeny broth medium afkomstig van een Intestinal Porcine Epithelial Cell Line(IPECs). We meten op 8 oktober 2020 de groeisnelheid ~ colony forming units van de bacterie o.i.v. MV of TX100 m.b.v.een plate reader bij OD600. Iets van 'salmonella_CFU_kinetics_08102020'?
+
+
+Create md5sums for important (source) data-files to ensure data version integrity and data transfer validity. Checking md5sums is also used for safety.
+
+```{r exercise 2.3}
+library(tools)
+library(here)
+
+#Find the MD5sum for the .txt file named MD5_exampledata_1.txt in ./workflows_lessen/md5_examples etc.:
+md5_ex1 <- tools::md5sum(
+  here::here(
+    "C:/Users/steph/OneDrive/Bureaublad/DSFB2/workflows_lessen",
+    "md5_examples",
+    "MD5_exampledata_1.txt"
+  )
+)
+
+md5_backup <- tools::md5sum(
+  here::here(
+    "C:/Users/steph/OneDrive/Bureaublad/DSFB2/workflows_lessen",
+    "md5_examples",
+    "MD5_exampledata_backupcomputercrash.txt"
+  )
+)
+
+md5_maybe <- tools::md5sum(
+  here::here(
+    "C:/Users/steph/OneDrive/Bureaublad/DSFB2/workflows_lessen",
+    "md5_examples",
+    "MD5_exampledata_maybethisone.txt"
+  )
+)
+
+md5_save <- tools::md5sum(
+  here::here(
+    "C:/Users/steph/OneDrive/Bureaublad/DSFB2/workflows_lessen",
+    "md5_examples",
+    "MD5_exampledata_savethisone.txt"
+  )
+)
+
+
+md5_ex1 %>% enframe() -> md5sums_ex1 #Use enframe() to get atomic vectors or lists nice and tidy in a tibble
+
+md5_backup %>% enframe() -> md5sums_backup
+
+md5_maybe %>% enframe() -> md5sums_maybe #deze is anders!
+
+md5_save %>% enframe() -> md5sums_save
+
+#Of in één keer:
+myDir <- here::here(
+    "C:/Users/steph/OneDrive/Bureaublad/DSFB2/workflows_lessen",
+    "md5_examples")
+
+fileNames <- list.files(myDir, recursive = TRUE)
+
+tools::md5sum(file.path(myDir, fileNames)) %>% enframe() -> md5sums_all
+md5sums_all$filename <- fileNames
+md5sums_all %>% select(filename,value)
+```
+
+```{r exercise 2.4}
+tools::md5sum(
+  here::here(
+    "C:/Users/steph/OneDrive/Bureaublad/DSFB2",
+    "workflows_lessen",
+    "toxrefdb_nel_lel_noael_loael_summary_AUG2014_FOR_PUBLIC_RELEASE.csv"
+  )
+) %>% enframe() -> md5sums_exc2.4
+
+md5sums_exc2.4 %>% readr::write_csv(here::here("C:/Users/steph/OneDrive/Bureaublad/DSFB2", "workflows_lessen", "toxrefdb_nel_lel_noael_loael_summary_AUG2014_FOR_PUBLIC_RELEASE.md5")) #Schrijf om naar een data frame voor "easy access"?
+```
+Check of MD5sums hetzelfde zijn: file_naam$value == file_naam2$value.
+
+
+Bijv. een .csv file inladen: _object_naam <- read_csv(here::here("pad","file folder","file naam"))_
+
+
+__Principle 2__: Simple, visual project structures and conventions
+
+1. Create a separate folder for each analytics project.
+
+2. Do not deeply nest folder.
+
+3. Keep information about the data, close to the data.
+
+4. Store each dataset in its own sub-folder within a data-raw folder. _If an updated file is recieved, move the old file to v01 within the sub-folder. The next updated file replaces the old file, which is moved to v02. Every sub-folder contains an MD5sum and README.txt with metadata_.
+
+5. Do not change file names or move them.
+
+6. Do not manually edit data source files. Never, ever change a value inside a file.
+
+7. Use relative paths. _Current working directory set to RMarkdown-containing folder. To refer to datasets stored outside of the RMarkdown-containing folder, use the here package that recreates a file path to the Rproject folder. Here::here builds a path to the top level of your project file. _.
+
+_Sharing data: remove sensitive data/replace sensitive data with fake data. Sent MD5sums along_.
+
+__Principle 3__: Automate everything with program code
+
+__Mijn workflows_lessen is de data folder uit de voorbeelden.__
+
+Store scripts in a “./code” folder, store (R) functions in a “./R” folder.
+
+Parameterized RMarkdown: for example the RMarkdown automatically edits the date and country in the title and the captions of the figures. 
+Geef dit aan in de header met bijv.:
+_params:_
+  _country_code: NLD BEL_
+  _from_to_date: 2020-01-01 2021-04-01_
+
+```{r exercise 2.6}
+
+```
+
+__Principle 4__: Link stored data to data in the analytics environment to data in work products
+
+The data is stored on disk or in the Cloud,
+The analytics environment is the Global Environment (where variables and R-objects live),
+Data is pulled from the storage in the Analytics Environment by a script,
+The work products (Rmd / Notebooks) bring it together.
+
+__Principle 5__: Version control for data and code - Git/Github is 'track-changes for code'
+
+__Metadata__
+
+Metadata (in the README.txt file) is data about the data, such as for instance the type of variables, the number of observations/subjects, the experimental design, the instruments used and who gathered the data. _Dingen die hetzelfde zijn voor alle subjects, de leeftijd van elk subject is een variabele!_
+
+Save at the very least in your Readme.txt:
+
+General information
+  title
+  information about the authors (name, institution,    email address)
+  date of data collection
+  location of data collection
+license information
+a data log with for each data file:
+  short description
+  date the file was created
+  variable list (full names and explanations)
+  units of measurements
+  definition for missing data (NA)
+methodological information
+  description of methods (you can link to piublications or protocols)
+  description of data processing (link to RMarkdown file)
+  any software or specific instruments used
+  Describe details that may influence reuse or replication efforts
+  
+Data-log: an overview of all datafiles in a project. Keep an MS Excel file ("data_log.xlsx") in the root of the data folder(boven data-raw?) of each project and keep it up to date to track all the files present in this folder.
+
+Some metadata is most useful if you have it available in the code directly. In order to reduce effort in generating a complete tidy table for your data, it might be worthwhile to create a number of extra tables containing metadata.
+
+```{r 2.5.3. Annotations and metadata in multiple files}
+# generate some dummy data for the example:
+measured1 <- rbinom(100, size = 2, prob = 0.3)
+measured2 <- rnorm(100, mean = 5.3, sd = 0.1)
+measured3 <- rnbinom(100, size = 10, prob = 0.1)
+concentration <- rep(1:10, 10)
+
+# put it in a tibble:
+data <- tibble::tibble(
+  `concentration (mMol/l)` = concentration,
+  `measured 1 (pg/ml)` = measured1,
+  `measured 2 (ng/ml)` = measured2,
+  `measured 3 (ng/ml)` = measured3
+)
+data
+
+#In this case, the unit information that is included in the variable names can be considered metadata. So you can put that information in a separate table. 
+
+#Create a pivoted table where the first column represents the variable names and split the column in variable names and unit information:
+var_names <- names(data)
+metadata <- tibble::tibble(
+  varnames = var_names
+)
+metadata
+
+metadata %>%
+  mutate(
+    varnames = str_replace_all(
+      varnames,
+      pattern = " ",
+      replacement = "")) %>%
+  separate(
+    varnames,
+    into = c("varnames", "units"), sep = "\\(", remove = FALSE) %>%
+  mutate(
+    units = str_replace_all(
+      units,
+      pattern = "\\)",
+      replacement = "")) -> metadata_clean
+metadata_clean
+
+#Now add additional information such as methods and remarks:
+methods <- c("dilution", "elisa", "lcms", "flow cytometry")
+remarks <- c(
+  "concentration of exposure compound",
+  "compound x is related to elevated blood pressure",
+  "...",
+  "..."
+  )
+metadata_clean%>%mutate(methods=methods,remarks=remarks)
+```
+
+The folder doc in the project folder contains basically everything concerning information about the project but not the data (PowerPoint on the experimental design, a contract etc.)
+
+The tidy data format is not the only suitable data format: the structure SummarizedExperiment is optimized for working with Bioconductor packages. For machine learning purposes, data is often in the wide format.
+
+```{r example wide format}
+library(mlbench)
+data(package = "mlbench", dataset = "BostonHousing")
+BostonHousing %>% as_tibble() #In this example the data is still tidy. This is not always the case, where you would need to transform the data to a long format that works well with tidyverse.
+```
+
+FOUT:
+```{r exercise 2.9}
+exc_2.9 <- read_excel("salmonella_CFU_kinetics_08oct2020.xlsx",sheet=3,skip=10)
+exc_2.9 <- exc_2.9[-1,]
+colnames(exc_2.9)=c("")
+exc_2.9_tidy <- pivot_longer(data=exc_2.9,cols=(3:292),names_to="Time_point",values_to="CFU_OD600")
+#Namen hadden in Excel file aangepast moeten zijn, ga ik nu niet handmatig zitten doen...
+#...
+#.....
+#.......
+```
+
+
+
+
+__1.__ Eventueel een nieuw project aanmaken, de folders aanmaken (volgens Guerilla Principles), een RMarkdown file aanmaken, benodigde packages installeren, geen idee eigenlijk?
+__2.__ Hierboven staat al genoemd dat we All Cycles de sheet met de ruwe data is.
+__3.__ Importeer het Excel bestand naar de juiste folder en verander de naam. Laad het in met read_excel("nieuwe_naam",sheet=3,...). ... = col_names=c("naam1","naam2",etc.) óf comment="10". Het is niet nodig om aan te geven dat de delimark een komma is.
+__4.__ Zorg er met pivot_longer voor dat de verschillende tijdstippen in één kolom staan en pas de kolom namen aan. Maak van de variabele Tijdstip een factor zodat er grafieken gemaakt kunnen worden. Uhm...
+__5.__ Titel geeft aan: een Salmonella bacterie is gekweekt in lysogeny broth medium afkomstig van een Intestinal Porcine Epithelial Cell Line(IPECs). We meten op 8 oktober 2020 de groeisnelheid ~ colony forming units van de bacterie o.i.v. MV of TX100 m.b.v.een plate reader bij OD600. Iets van 'salmonella_CFU_kinetics_08102020'?
+
+
+
+
+The palmerpenguins dataset as an example to show how they dealt with encoding variables:
+
+```{r palmerpenguins}
+library(palmerpenguins)
+data_penguins <- palmerpenguins::penguins_raw 
+data_penguins
+
+library(ggplot2)
+penguinswrong <- penguins
+levels(penguinswrong$species) <- c(levels(penguinswrong$species), "adelie")
+penguinswrong$species[1:5]<-"adelie"
+
+flipper_box <- ggplot(data = penguinswrong, aes(x = species, y = flipper_length_mm)) +
+  geom_boxplot(aes(color = species), width = 0.3, show.legend = FALSE) +
+  geom_jitter(aes(color = species), alpha = 0.5, show.legend = FALSE, position = position_jitter(width = 0.2, seed = 0)) +
+  scale_color_manual(values = c("darkorange","purple","cyan4","red")) +
+  theme_minimal() +
+  labs(x = "Species",
+       y = "Flipper length (mm)")
+flipper_box
+```
+
+When we store data for re-use, we need it to be in an interoperable form. This means that it can be read (also after a long time - let’s say 30 years from now) into analysis software. This can be achieved by storing data in a so-called non-proprietary format. (Bijv. dat ze de software up to date voor me houden?)
+
+Think about how you will enter your data before gathering it, and if there are multiple people gathering the data, make sure that everyone uses the exact same way of entering the data (template). Enter an “NA” for missing values, do not leave cells blank if there is a missing value. Use only “NA” and nothing else. If you want to add additional information on the “NA,” put that in the “remarks” column.
+
+__Visualize missing data with the naniar package: naniar::vis_miss(...)__
+
+Never change a value in the data. If you want to make changes, increment the version number of the file and document the change in the README.txt file or Excel file.
+
+Tidy template (Excel):
+
+Start your file in A1 of a clean new sheet.
+Use row 1 for variable names, use the rest of the rows for observations
+It is allowed to have existing sheets in the file. Label the new tidy formatted datasheet as “tidy”
+Do not fuse cells
+Provide one value per cell so e.g. put units in a separate column
+Adhere to the naming conventions for variable names (see above)
+Use cell validation for entered values. This is especially true if you have multiple categorical variables that need manual labeling in Excel. A typo is just around the corner.

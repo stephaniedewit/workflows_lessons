@@ -1,0 +1,10 @@
+---
+title: "Test Report"
+author: "Stephanie de Wit"
+date: '2022-05-03'
+output: 
+  word_document: 
+    reference_docx: word-styles-reference-01.docx
+---
+
+"My report starts here."

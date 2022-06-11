@@ -1,0 +1,45 @@
+---
+title: "workflows_les_4"
+author: "Stephanie de Wit"
+date: '2022-04-25'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In summary, the workflow for projects with multiple persons consists of the following steps:
+
+  The person that wants to make some changes to the project, creates a development branch.
+
+
+  This person can then make changes, commit the changes and pushes them to GitHub.
+
+
+  On GitHub, the person can create a pull request to add his changes to the main branch.
+
+
+  All the team members can now pull the changes to their computer.
+  
+  
+You can create a development branch by clicking on the purple ‘New Branch’ symbol in the Git menu. __Make sure that you pull once before creating your development branch, to make sure that your main branch is up to date.__
+
+
+__Issues__ placed in a repository can be used for external people to report a bug, a feature request or a question regarding functionality or implementation. You can setup a project board in the repo to track issues and help you organize your work. They are made up of issues, pull requests, and notes that are categorized as cards in columns of your choosing.
+
+Fixing an issue (via RStudio?) automatically puts the closed issue-card under the column Done in the repo-linked project board.
+
+
+The entire GitHub flow is based upon branching. There’s only one rule: anything in the main branch is always deployable. A branch name should be descriptive. Furthermore: one issue per change, one issue per branch.
+
+
+__Milestones__ in Github can be considered as Agile/SCRUM sprints. So each sprint is associated with one or multiple milestones that need to be resolved at the end of each sprint. Every milestone is associated with multiple issues that need to be resolved this sprint (within their own branch!). Fixing issues automatically updates the project board and milestone.
+
+Items from the backlog (= to do long term column) for every sprint are added to a milestone, which allows to group itms in sprints and track them by milestone.
+
+
+
+
+  
+  

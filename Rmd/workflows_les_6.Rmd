@@ -1,0 +1,218 @@
+---
+title: "workflows_les_6"
+author:
+  - Stephanie de Wit, Hogeschool Utrecht
+  - Jane Doe, Institution Two
+date: '2022-04-29'
+output: 
+  html_document:
+    theme: spacelab
+    number_sections: true
+code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+```
+
+## Output options
+
+Voeg een (zwevende) inhoudsopgave toe onder 'output:' in de YAML header met:
+
+<br>
+
+output:
+
+..html_document:
+  
+....toc: true
+    
+....toc_float: true
+
+<br>
+
+Geef aan of er alleen kopjes of ook sub-kopjes e.d. in de inhoudsopgave moeten komen met: 
+
+"toc_depth: 1-6"
+
+## Tabbed sections
+
+Voeg {.tabset} toe aan een kopje om ervoor te zorgen dat sub-kopjes verschijnen als tabjes:
+
+"## Kopje {.tabset}"
+
+"### Sub-kopje"
+
+"### Sub-kopje 2"
+
+## Themes {.tabset}
+
+Geen CSS style toepassen maar een ingebouwd RMarkdown thema:
+
+"output:
+  html_document:
+    theme: united"
+   
+### Exercise 6.2
+
+"code_folding: hide" in de header laat bij elke chunk een knop zien waarmee de code weergegeven of verborgen kan worden.
+
+"number_section: true" in de header _even ver ingesprongen als toc_ nummert de kopjes.
+
+### Oefentabje
+
+## PDF
+
+YAML header voorbeeld voor een PDF:
+
+<br>
+
+title: "My document"
+
+output: pdf_document
+
+fontsize: 11pt
+
+geometry: margin=1in
+
+<br>
+
+__"Note that these options do not get an indent, but rather need to be defined at the same level as title, author, output etc."__
+
+## Word {.tabset}
+
+YAML header voorbeeld voor een Word-bestand (ook zonder inspringingen):
+
+<br>
+
+title: "My weekly report"
+
+author: Joep
+
+date: March 22, 1999
+
+output: word_document
+
+<br>
+
+"But now how do we edit the layout? __RMarkdown can use a reference .docx file to get all the layout information from.__"
+
+### Exercise 6.3
+
+title: "Untitled"
+
+author: "Your Name"
+
+date: "July 3, 2015"
+
+output: word_document
+
+<br>
+"Click the Knit button --> save the appearing Word file under something like word-styles-reference-01.docx in the same folder as your R Markdown file --> Go to Stijlen --> edit, for example, the Title style --> add to R Markdown file:
+
+output: 
+
+  word_document: 
+  
+...reference_docx: word-styles-reference-01.docx
+
+"
+
+## Javascript packages {.tabset}
+
+"We already showed how to make interactive tables. You can make interactive graphs and figures with Javascript packages."
+
+### Maps
+
+```{r map HL7}
+#install.packages("htmlwidgets")?
+#install.packages("leaflet")
+
+library(htmlwidgets)
+library(leaflet)
+
+map <- leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lat=52.084036170323024, lng=5.173630727235891, popup="Here be HL7!") 
+# get coordinates from google maps
+
+map  # Print the map
+```
+
+```{r map HL7 rabbits}
+library(leaflet)
+library(tidyverse)
+
+rabbit_locations <- tibble( rabbitnr = c(1:5),
+                            lat  = c(52.0852,52.0832,52.08247,52.0834,52.08309),
+                            long = c(5.171109,5.171248,5.171248,5.176055,5.17268) )
+
+leaflet(data = rabbit_locations) %>% addTiles() %>% 
+  addMarkers(~long, ~lat, popup = ~as.character(rabbitnr), label = ~as.character(rabbitnr))
+```
+
+### Exercise 6.4
+
+```{r map HL7 rabbits icons}
+library(leaflet)
+library(tidyverse)
+
+rabbit_locations <- tibble( rabbitnr = c(1:5),
+                            lat  = c(52.0852,52.0832,52.08247,52.0834,52.08309),
+                            long = c(5.171109,5.171248,5.171248,5.176055,5.17268) )
+
+rabbit <- makeIcon(iconUrl = "https://cdn2.iconfinder.com/data/icons/animal-11/64/Cute_Animal_Wildlife_Head_Face-15-512.png", iconWidth = 35, iconHeight = 50)
+
+leaflet(data = rabbit_locations) %>% addTiles() %>% 
+  addMarkers(~long, ~lat, popup = ~as.character(rabbitnr), label = ~as.character(rabbitnr), icon = rabbit)
+```
+
+### 3D figures
+
+"Sometimes two axes don't cut it:"
+
+```{r figuur}
+#install.packages("threejs")
+
+library(threejs)
+library(palmerpenguins)
+
+z <- penguins$bill_length_mm
+x <- penguins$flipper_length_mm
+y <- penguins$body_mass_g
+N = length(levels(penguins$species)) # we want 3 colours
+scatterplot3js(x,y,z, color=rainbow(N)[penguins$species])
+```
+
+### Time series
+
+```{r}
+#Packages
+#install.packages("dygraphs")
+#install.packages("xts")
+
+# Libraries
+library(dygraphs)
+library(xts) 
+
+# get some data
+# Your time column MUST be a time format or numbers
+rabbitdata <- data.frame(
+  time=seq(from=Sys.Date()-(10*365), to=Sys.Date(), by=21 ), 
+  oorlengte=runif((10*365)/21+1,min = 6, max = 10)
+)
+
+rabbitdata$oorlengte[120:138]<-rabbitdata$oorlengte[120:138]+4
+
+# create xts format because dygraph() only eats xts
+rabbitdata.xts <- xts(x = rabbitdata$oorlengte, order.by = rabbitdata$time)
+
+# plot
+dygraph(rabbitdata.xts) %>% 
+  dySeries(label="average ear length (cm)", color="black") %>%
+  dyShading(from=rabbitdata$time[120], to=rabbitdata$time[138], color="#FFE6E6") %>%
+  dyRangeSelector(dateWindow = c(rabbitdata$time[90], rabbitdata$time[150]))
+```
+
+
+
